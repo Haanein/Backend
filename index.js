@@ -1,31 +1,66 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import userRouter from "./router/user.js";
 import dotenv from "dotenv";
+
+// Import routes
+import userRouter from "./router/user.js";
+import placeRouter from "./router/place.js";
+
+// Load environment variables
 dotenv.config();
+
+// Initialize Express app
 const app = express();
+
+// Middleware
 app.use(express.json());
 app.use(cors());
 
-app.use("/users", userRouter);
+// Routes
+app.use("/api/users", userRouter);
+app.use("/api/places", placeRouter);
 
-const uri = process.env.MONGO_ATLAS_URI || "";
+// Root route
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Welcome to Haanein API",
+  });
+});
+
+// 404 handler for undefined routes
+// app.use("*", (req, res) => {
+//   res.status(404).json({
+//     status: "error",
+//     message: "Route not found",
+//   });
+// });
+
+// Database connection
+const uri = process.env.MONGO_ATLAS_URI;
 const port = process.env.PORT || 4200;
 
-const connect = () => {
+const connectDB = async () => {
   try {
     mongoose.set("strictQuery", true);
-    mongoose.connect(uri, {}).then(() => {
-      console.log("Connected to MongoDB");
-    });
+    await mongoose.connect(uri);
+    console.log("Connected to MongoDB");
   } catch (error) {
-    console.error("Couldnt Connect");
+    console.error("MongoDB connection error:", error.message);
     process.exit(1);
   }
 };
 
+// Start server
 app.listen(port, async () => {
-  connect();
-  console.log(`Server running at localhost:${port}`);
+  await connectDB();
+  console.log(`Server running at http://localhost:${port}`);
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (err) => {
+  console.log("UNHANDLED REJECTION! 💥 Shutting down...");
+  console.log(err.name, err.message);
+  process.exit(1);
 });
