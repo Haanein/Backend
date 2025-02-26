@@ -125,7 +125,7 @@ export const getUserByObject = async (req, res) => {
       }
     );
 
-    const user = await Post.findOne({
+    const user = await User.findOne({
       email,
     });
     const isMatch = await user.comparePassword(password);
