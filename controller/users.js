@@ -1,4 +1,6 @@
 import User from "../model/User.js";
+import jwt from "jsonwebtoken";
+
 export const createUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -93,7 +95,7 @@ export const loginUser = async (req, res) => {
 
 export const getAllUser = async (req, res) => {
   try {
-    const user = await Post.find({}).populate("Link");
+    const user = await User.find({});
     res.status(200).send({
       data: user,
     });
@@ -122,6 +124,7 @@ export const getUserByObject = async (req, res) => {
         expiresIn: "100d",
       }
     );
+
     const user = await Post.findOne({
       email,
     });
