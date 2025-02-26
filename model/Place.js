@@ -10,13 +10,13 @@ const PlaceSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      required: [true, "Description is required"],
       trim: true,
+      default: "",
     },
-    address: {
+    workingHours: {
       type: String,
-      required: [true, "Address is required"],
       trim: true,
+      default: "",
     },
     location: {
       type: {
@@ -28,21 +28,36 @@ const PlaceSchema = new mongoose.Schema(
         type: [Number],
         required: true,
       },
-    },
-    category: {
-      type: String,
-      required: [true, "Category is required"],
-      trim: true,
-    },
-    images: {
-      type: [String],
-      default: [],
+      address: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      placeLocationLink: {
+        type: String,
+        trim: true,
+        default: "",
+      }
     },
     rating: {
       type: Number,
       min: [0, "Rating must be at least 0"],
       max: [5, "Rating cannot exceed 5"],
       default: 0,
+    },
+    categories: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    images: {
+      type: [String],
+      default: [],
     },
     reviewCount: {
       type: Number,
@@ -51,7 +66,9 @@ const PlaceSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      // Making this optional to prevent undefined errors
+      required: false,
+      default: null,
     },
     createdAt: {
       type: Date,
