@@ -10,8 +10,7 @@ export const createUser = async (req, res) => {
     if (userExists) {
       return res.status(400).json({
         status: "error",
-        message:
-          "A user with this email already exists. Please use a different email or log in.",
+        message: "Энэ имэйл дээр бүртгэл үүссэн байна. Өөр имэйл ашиглана уу.",
       });
     }
 
@@ -31,7 +30,7 @@ export const createUser = async (req, res) => {
 
     res.status(201).json({
       status: "success",
-      message: "Account created successfully!",
+      message: "Бүртгэл амжилттай үүслээ.",
       token,
       data: {
         user,
@@ -40,8 +39,7 @@ export const createUser = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message:
-        "Something went wrong while creating your account. Please try again.",
+      message: "Таны бүртгэлийг үүсгэх явцад алдаа гарлаа. Дахин оролдоно уу.",
     });
   }
 };
@@ -54,7 +52,7 @@ export const loginUser = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         status: "error",
-        message: "Email and password are required to log in.",
+        message: "Нэвтрэхийн тулд имэйл болон нууц үг шаардлагатай.",
       });
     }
 
@@ -63,7 +61,7 @@ export const loginUser = async (req, res) => {
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({
         status: "error",
-        message: "Invalid email or password. Please try again.",
+        message: "Имэйл эсвэл нууц үг таарсангүй. Дахин оролдоно уу.",
       });
     }
 
@@ -72,7 +70,7 @@ export const loginUser = async (req, res) => {
 
     res.status(200).json({
       status: "success",
-      message: "Login successful!",
+      message: "Амжилттай нэвтэрлээ.",
       token,
       data: {
         user,
@@ -81,7 +79,7 @@ export const loginUser = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "An error occurred while logging in. Please try again later.",
+      message: "Нэвтрэх явцад алдаа гарлаа. Дараа дахин оролдоно уу.",
     });
   }
 };
@@ -92,13 +90,13 @@ export const getAllUser = async (req, res) => {
     const users = await User.find({});
     res.status(200).json({
       status: "success",
-      message: "Users retrieved successfully.",
+      message: "Хэрэглэгчдийг амжилттай татаж авлаа.",
       data: users,
     });
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Could not fetch users. Please try again later.",
+      message: "Хэрэглэгчдийг татаж чадсангүй. Дараа дахин оролдоно уу.",
     });
   }
 };
@@ -111,7 +109,7 @@ export const getUserByObject = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         status: "error",
-        message: "Please provide both email and password.",
+        message: "Имэйл болон нууц үгээ оруулна уу.",
       });
     }
 
@@ -120,7 +118,7 @@ export const getUserByObject = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: "error",
-        message: "No user found with this email.",
+        message: "Энэ имэйлтэй хэрэглэгч олдсонгүй.",
       });
     }
 
@@ -129,7 +127,7 @@ export const getUserByObject = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         status: "error",
-        message: "Incorrect password. Please try again.",
+        message: "Нууц үг буруу байна. Дахин оролдоно уу.",
       });
     }
 
@@ -145,7 +143,7 @@ export const getUserByObject = async (req, res) => {
 
     res.status(200).json({
       status: "success",
-      message: "User authenticated successfully.",
+      message: "Хэрэглэгчийг амжилттай баталгаажууллаа.",
       data: {
         user,
         token,
@@ -154,7 +152,7 @@ export const getUserByObject = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       status: "error",
-      message: "An error occurred. Please try again later.",
+      message: "Алдаа гарлаа. Дараа дахин оролдоно уу.",
     });
   }
 };
@@ -167,13 +165,13 @@ export const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: "error",
-        message: "User not found. Please check the ID and try again.",
+        message: "Хэрэглэгч олдсонгүй. ID-г шалгаад дахин оролдоно уу.",
       });
     }
 
     res.status(200).json({
       status: "success",
-      message: "User details retrieved successfully.",
+      message: "Хэрэглэгчийн мэдээллийг амжилттай татаж авлаа.",
       data: {
         user,
       },
@@ -181,7 +179,8 @@ export const getUserById = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Error retrieving user details. Please try again.",
+      message:
+        "Хэрэглэгчийн мэдээллийг татаж авахад алдаа гарлаа. Дахин оролдоно уу.",
     });
   }
 };
@@ -193,7 +192,7 @@ export const updateUser = async (req, res) => {
       return res.status(400).json({
         status: "error",
         message:
-          "Password updates are not allowed here. Please use the /updatePassword route.",
+          "Энд нууц үг шинэчлэхийг хориглоно. /updatePassword маршрутыг ашиглана уу.",
       });
     }
 
@@ -207,13 +206,13 @@ export const updateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: "error",
-        message: "User not found. Please check the ID and try again.",
+        message: "Хэрэглэгч олдсонгүй. ID-г шалгаад дахин оролдоно уу.",
       });
     }
 
     res.status(200).json({
       status: "success",
-      message: "User profile updated successfully.",
+      message: "Хэрэглэгчийн профайлыг амжилттай шинэчилсэн.",
       data: {
         user,
       },
@@ -221,7 +220,7 @@ export const updateUser = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Error updating profile. Please try again later.",
+      message: "Профайлыг шинэчлэхэд алдаа гарлаа. Дараа дахин оролдоно уу.",
     });
   }
 };
@@ -234,19 +233,19 @@ export const deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: "error",
-        message: "User not found. Unable to delete.",
+        message: "Хэрэглэгч олдсонгүй. Устгах боломжгүй.",
       });
     }
 
     res.status(204).json({
       status: "success",
-      message: "User deleted successfully.",
+      message: "Хэрэглэгчийг амжилттай устгасан.",
       data: null,
     });
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "An error occurred while deleting the user. Please try again.",
+      message: "Хэрэглэгчийг устгах явцад алдаа гарлаа. Дахин оролдоно уу.",
     });
   }
 };
@@ -259,13 +258,13 @@ export const getCurrentUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: "error",
-        message: "User not found. Please log in again.",
+        message: "Хэрэглэгч олдсонгүй. Дахин нэвтэрнэ үү.",
       });
     }
 
     res.status(200).json({
       status: "success",
-      message: "User profile retrieved successfully.",
+      message: "Хэрэглэгчийн профайлыг амжилттай татаж авлаа.",
       data: {
         user,
       },
@@ -273,7 +272,7 @@ export const getCurrentUser = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: "Error retrieving profile. Please try again later.",
+      message: "Профайлыг сэргээхэд алдаа гарлаа. Дараа дахин оролдоно уу.",
     });
   }
 };
