@@ -10,7 +10,8 @@ export const createUser = async (req, res) => {
     if (userExists) {
       return res.status(400).json({
         status: "error",
-        message: "User with this email already exists",
+        message:
+          "A user with this email already exists. Please use a different email or log in.",
       });
     }
 
@@ -30,6 +31,7 @@ export const createUser = async (req, res) => {
 
     res.status(201).json({
       status: "success",
+      message: "Account created successfully!",
       token,
       data: {
         user,
@@ -38,119 +40,126 @@ export const createUser = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: error.message,
+      message:
+        "Something went wrong while creating your account. Please try again.",
     });
   }
 };
 
 // @desc    Login user
-// @route   POST /api/users/login
-// @access  Public
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if email and password exist
     if (!email || !password) {
       return res.status(400).json({
         status: "error",
-        message: "Please provide email and password",
+        message: "Email and password are required to log in.",
       });
     }
 
-    // Check if user exists & password is correct
     const user = await User.findOne({ email }).select("+password");
 
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({
         status: "error",
-        message: "Incorrect email or password",
+        message: "Invalid email or password. Please try again.",
       });
     }
 
-    // Generate token
     const token = user.generateAuthToken();
+    user.password = undefined;
+
+    res.status(200).json({
+      status: "success",
+      message: "Login successful!",
+      token,
+      data: {
+        user,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "An error occurred while logging in. Please try again later.",
+    });
+  }
+};
+
+// @desc    Get all users
+export const getAllUser = async (req, res) => {
+  try {
+    const users = await User.find({});
+    res.status(200).json({
+      status: "success",
+      message: "Users retrieved successfully.",
+      data: users,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: "Could not fetch users. Please try again later.",
+    });
+  }
+};
+
+export const getUserByObject = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if email and password were provided
+    if (!email || !password) {
+      return res.status(400).json({
+        status: "error",
+        message: "Please provide both email and password.",
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "No user found with this email.",
+      });
+    }
+
+    // Check if password matches
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({
+        status: "error",
+        message: "Incorrect password. Please try again.",
+      });
+    }
+
+    // Generate token (without password)
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "100d" }
+    );
 
     // Remove password from response
     user.password = undefined;
 
     res.status(200).json({
       status: "success",
-      token,
+      message: "User authenticated successfully.",
       data: {
         user,
+        token,
       },
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       status: "error",
-      message: error.message,
-    });
-  }
-};
-
-// @desc    Get all users
-// @route   GET /api/users
-// @access  Private/Admin
-
-export const getAllUser = async (req, res) => {
-  try {
-    const user = await User.find({});
-    res.status(200).send({
-      data: user,
-    });
-  } catch (error) {
-    res.status(400).send({
-      data: error.message,
+      message: "An error occurred. Please try again later.",
     });
   }
 };
 
 // @desc    Get user by ID
-// @route   GET /api/users/:id
-// @access  Private
-
-export const getUserByObject = async (req, res) => {
-  try {
-    const { email, password, role } = req.body;
-    const token = jwt.sign(
-      {
-        email: email,
-        password: password,
-        role: role,
-      },
-      "secret",
-      {
-        expiresIn: "100d",
-      }
-    );
-
-    const user = await User.findOne({
-      email,
-    });
-    const isMatch = await user.comparePassword(password);
-    console.log(isMatch);
-    if (!isMatch) {
-      res.send("isMatch");
-    }
-    if (user) {
-      res.status(200).send({
-        data: user,
-        token: token,
-      });
-    } else {
-      res.status(404).send({
-        data: "User not found",
-      });
-    }
-  } catch (error) {
-    res.status(400).send({
-      success: false,
-      error: error.message,
-    });
-  }
-};
-
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate("links");
@@ -158,12 +167,13 @@ export const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: "error",
-        message: "User not found",
+        message: "User not found. Please check the ID and try again.",
       });
     }
 
     res.status(200).json({
       status: "success",
+      message: "User details retrieved successfully.",
       data: {
         user,
       },
@@ -171,26 +181,22 @@ export const getUserById = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: error.message,
+      message: "Error retrieving user details. Please try again.",
     });
   }
 };
 
 // @desc    Update user profile
-// @route   PATCH /api/users/:id
-// @access  Private
 export const updateUser = async (req, res) => {
   try {
-    // Check if user is trying to update password
     if (req.body.password) {
       return res.status(400).json({
         status: "error",
         message:
-          "This route is not for password updates. Please use /updatePassword",
+          "Password updates are not allowed here. Please use the /updatePassword route.",
       });
     }
 
-    // Filter unwanted fields that should not be updated
     const filteredBody = filterObj(req.body, "name", "email");
 
     const user = await User.findByIdAndUpdate(req.params.id, filteredBody, {
@@ -201,12 +207,13 @@ export const updateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: "error",
-        message: "User not found",
+        message: "User not found. Please check the ID and try again.",
       });
     }
 
     res.status(200).json({
       status: "success",
+      message: "User profile updated successfully.",
       data: {
         user,
       },
@@ -214,14 +221,12 @@ export const updateUser = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: error.message,
+      message: "Error updating profile. Please try again later.",
     });
   }
 };
 
 // @desc    Delete user
-// @route   DELETE /api/users/:id
-// @access  Private/Admin
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -229,31 +234,38 @@ export const deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         status: "error",
-        message: "User not found",
+        message: "User not found. Unable to delete.",
       });
     }
 
     res.status(204).json({
       status: "success",
+      message: "User deleted successfully.",
       data: null,
     });
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: error.message,
+      message: "An error occurred while deleting the user. Please try again.",
     });
   }
 };
 
 // @desc    Get current user profile
-// @route   GET /api/users/me
-// @access  Private
 export const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate("links");
 
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found. Please log in again.",
+      });
+    }
+
     res.status(200).json({
       status: "success",
+      message: "User profile retrieved successfully.",
       data: {
         user,
       },
@@ -261,7 +273,7 @@ export const getCurrentUser = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: "error",
-      message: error.message,
+      message: "Error retrieving profile. Please try again later.",
     });
   }
 };
