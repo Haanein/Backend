@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node"; // Import Clerk SDK component
 
 // Import routes
 import userRouter from "./router/user.js";
@@ -10,12 +11,18 @@ import placeRouter from "./router/place.js";
 // Load environment variables
 dotenv.config();
 
+// Middleware to verify Clerk sessions
+const requireClerkSession = ClerkExpressWithAuth({
+  apiKey: process.env.CLERK_API_KEY,
+});
+
 // Initialize Express app
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cors());
+app.use(requireClerkSession); // Apply Clerk middleware
 
 // Routes
 app.use("/api/users", userRouter);
